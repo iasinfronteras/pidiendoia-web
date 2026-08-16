@@ -1,0 +1,267 @@
+name: CI/CD — pidiendoia.com
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Permisos mínimos de GITHUB_TOKEN. El workflow nunca escribe en el repositorio.
+permissions:
+  contents: read
+
+jobs:
+  # ────────────────────────────────────────────────────────────────
+  # CI — Build y validaciones
+  # Corre en PRs y pushes a main. Nunca toca el VPS.
+  # ────────────────────────────────────────────────────────────────
+  ci:
+    name: Build + Validate
+    runs-on: ubuntu-latest
+
+    # Un commit más reciente reemplaza un run de CI anterior en el mismo ref.
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # El workflow no hace push ni modifica el repositorio.
+          persist-credentials: false
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies reproducibly
+        run: npm ci
+
+      - name: Verify TypeScript
+        run: npx tsc --noEmit
+
+      - name: Build production site
+        run: npm run build
+
+      - name: Validate build artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f dist/index.html
+          grep -Fq '<title>PidiendoIA | pidiendoia.com</title>' dist/index.html
+          test "$(grep -o '<section' dist/index.html | wc -l)" -ge 9
+          grep -Fq 'Agendar diagnóstico' dist/index.html
+
+      - name: Upload verified artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  # ────────────────────────────────────────────────────────────────
+  # CD — Deployment por releases al VPS de producción
+  # Solo push -> main puede alcanzar este job.
+  # El environment production controla el acceso a los secrets de deployment.
+  # ────────────────────────────────────────────────────────────────
+  cd:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    # Nunca interrumpir un deployment activo en producción.
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+
+    environment:
+      name: production
+      url: https://pidiendoia.com
+
+    steps:
+      - name: Download verified artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_DEPLOY_SSH_KEY }}
+
+      - name: Configurar clave de host SSH
+        shell: bash
+        env:
+          VPS_SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Capture active release before any change
+        id: prev
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+
+          PREV_SHA="$(ssh -o BatchMode=yes \
+            "$VPS_DEPLOY_USER@$VPS_HOST" \
+            'readlink -f /srv/stack-web/site/current | xargs -r basename')"
+
+          if [[ ! "$PREV_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Invalid PREV_SHA returned by the VPS: $PREV_SHA"
+            exit 1
+          fi
+
+          echo "sha=$PREV_SHA" >> "$GITHUB_OUTPUT"
+          echo "Previous production release: $PREV_SHA"
+
+      - name: Create new release directory
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes "$VPS_DEPLOY_USER@$VPS_HOST" \
+            "mkdir -p -- '/srv/stack-web/site/releases/$RELEASE_SHA'"
+
+      - name: Transfer verified artifact
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          rsync -az --delete \
+            dist/ \
+            "$VPS_DEPLOY_USER@$VPS_HOST:/srv/stack-web/site/releases/$RELEASE_SHA/"
+
+      - name: Activate release atomically
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          # El script privilegiado en el VPS valida el FULL SHA y ejecuta:
+          # ln -s "releases/$SHA" site/current.new
+          # mv -T site/current.new site/current
+          ssh -o BatchMode=yes "$VPS_DEPLOY_USER@$VPS_HOST" \
+            "sudo /usr/local/sbin/pidiendoia-activate-release '$RELEASE_SHA'"
+
+      - name: Production health check
+        id: healthcheck
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Dar a Nginx un momento para observar el nuevo symlink current, luego reintentar.
+          sleep 3
+
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --location \
+                --max-time 15 \
+                https://pidiendoia.com/ | grep -Fq 'PidiendoIA'; then
+              echo "Health check passed on attempt $attempt."
+              exit 0
+            fi
+            echo "Health check attempt $attempt failed; retrying..."
+            sleep 2
+          done
+
+          echo "::error::Production health check failed."
+          exit 1
+
+      - name: Register successful deployment
+        if: success()
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes "$VPS_DEPLOY_USER@$VPS_HOST" \
+            "printf '%s\\n' '$RELEASE_SHA' > /srv/stack-web/DEPLOYED_COMMIT"
+
+      - name: Roll back if health check failed
+        if: failure() && steps.healthcheck.outcome == 'failure'
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
+          PREV_SHA: ${{ steps.prev.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          ssh -o BatchMode=yes "$VPS_DEPLOY_USER@$VPS_HOST" \
+            "sudo /usr/local/sbin/pidiendoia-activate-release '$PREV_SHA' && \
+             printf '%s\\n' '$PREV_SHA' > /srv/stack-web/DEPLOYED_COMMIT"
+
+          echo "::error::Deployment FAILED: production health check did not pass."
+          echo "::notice::Rollback SUCCESSFUL. Production restored to $PREV_SHA."
+
+          # Un rollback exitoso no convierte el deployment original en exitoso.
+          exit 1
+
+      - name: Cleanup old releases safely
+        if: success()
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+
+          ssh -o BatchMode=yes "$VPS_DEPLOY_USER@$VPS_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+
+          RELEASES_DIR=/srv/stack-web/site/releases
+          CURRENT_LINK=/srv/stack-web/site/current
+
+          CURRENT_SHA="$(readlink -f "$CURRENT_LINK" | xargs -r basename)"
+
+          if [[ ! "$CURRENT_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Invalid current release: $CURRENT_SHA" >&2
+            exit 1
+          fi
+
+          # Conservar los tres releases más recientes por tiempo de modificación,
+          # pero NUNCA eliminar el release actualmente referenciado por current.
+          mapfile -t OLD_RELEASES < <(
+            find "$RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %f\n' |
+              sort -nr |
+              tail -n +4 |
+              cut -d' ' -f2-
+          )
+
+          for SHA in "${OLD_RELEASES[@]}"; do
+            [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || continue
+            [[ "$SHA" == "$CURRENT_SHA" ]] && continue
+            rm -rf -- "$RELEASES_DIR/$SHA"
+          done
+          REMOTE
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "Deployment successful."
+          echo "Commit: ${{ github.sha }}"
+          echo "Previous release: ${{ steps.prev.outputs.sha }}"
