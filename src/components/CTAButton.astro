@@ -1,0 +1,106 @@
+---
+/**
+ * CTAButton.astro
+ * Botón de llamada a la acción reutilizable para pidiendoia.com.
+ *
+ * Responsabilidades:
+ * - Proveer un botón/enlace consistente con el Design System Q-04.
+ * - Soportar tres variantes visuales: primary, secondary y ghost.
+ * - Renderizarse como <a> cuando se proporciona href, o como <button> si no.
+ *
+ * Restricciones (DS-02):
+ * - Solo un botón primary por sección.
+ * - El segundo CTA de una sección debe usar secondary o ghost.
+ *
+ * Uso:
+ *   <CTAButton href="/contacto?origen=hero" variant="primary">
+ *     Agendar diagnóstico
+ *   </CTAButton>
+ *
+ *   <CTAButton href="/demos" variant="secondary">
+ *     Ver cómo funciona
+ *   </CTAButton>
+ */
+
+// ─── Props ───────────────────────────────────────────────────────────────────
+interface Props {
+  /** URL de destino. Si se omite, se renderiza como <button type="button">. */
+  href?: string;
+
+  /**
+   * Variante visual del botón.
+   * - primary:   fondo brand-700, texto blanco. CTA principal de sección.
+   * - secondary: borde brand-700, texto brand-700. CTA alternativo.
+   * - ghost:     sin borde ni fondo, texto neutral-700. Acción terciaria.
+   */
+  variant?: 'primary' | 'secondary' | 'ghost';
+
+  /** Clases adicionales para ajustes puntuales de espaciado o tamaño. */
+  class?: string;
+
+  /** Atributo aria-label para accesibilidad cuando el texto no es suficiente. */
+  ariaLabel?: string;
+}
+
+const {
+  href,
+  variant   = 'primary',
+  class: extraClasses = '',
+  ariaLabel,
+} = Astro.props;
+
+// ─── Clases base (compartidas por todas las variantes) ───────────────────────
+const base = [
+  'inline-flex items-center justify-center',
+  'rounded px-5 py-2.5',
+  'text-sm font-medium',
+  'transition-colors duration-150',
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+].join(' ');
+
+// ─── Clases por variante ──────────────────────────────────────────────────────
+const variants: Record<string, string> = {
+  primary: [
+    'bg-brand-700 text-white',
+    'hover:bg-brand-900',
+    'focus-visible:outline-brand-700',
+  ].join(' '),
+
+  secondary: [
+    'border-1.5 border-brand-700 text-brand-700 bg-transparent',
+    'hover:bg-brand-50',
+    'focus-visible:outline-brand-700',
+  ].join(' '),
+
+  ghost: [
+    'text-neutral-700 bg-transparent',
+    'hover:text-brand-700',
+    'focus-visible:outline-neutral-700',
+  ].join(' '),
+};
+
+const classes = `${base} ${variants[variant]} ${extraClasses}`.trim();
+---
+
+<!--
+  Renderizado condicional:
+  - Con href  → elemento <a> semánticamente correcto para navegación.
+  - Sin href  → elemento <button> para acciones sin navegación.
+-->
+{href ? (
+  <a
+    href={href}
+    class={classes}
+    aria-label={ariaLabel}
+  >
+    <slot />
+  </a>
+) : (
+  <button
+    type="button"
+    class={classes}
+    aria-label={ariaLabel}
+  >
+    <slot />
+  </button>
+)}

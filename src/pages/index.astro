@@ -1,0 +1,637 @@
+---
+/**
+ * index.astro
+ * Home de pidiendoia.com — página principal.
+ *
+ * Especificación: Especificación_Funcional_Etapa1_StackWeb_PidiendoIA_v1.1 — Página 1 (/)
+ *
+ * Secciones:
+ * S1.1 — Navegación        (en Base.astro/Nav.astro)
+ * S1.2 — Hero
+ * S1.3 — Problema (3 tarjetas)
+ * S1.4 — Cómo trabajamos (4 pasos)
+ * S1.5 — Casos de uso (5 tarjetas)
+ * S1.6 — Demo embebida
+ * S1.7 — Servicios (4 bloques)
+ * S1.8 — Nosotros (compacto)
+ * S1.9 — CTA final
+ *
+ * Restricciones:
+ * - RC-01: el H1 parte del problema empresarial, no menciona "IA".
+ * - RC-02: sin resultados propios — solo benchmarks externos identificados.
+ * - RC-05: sin logos de clientes ni testimonios.
+ * - DS-02: un solo botón primary por sección.
+ */
+
+// ─── Importaciones ───────────────────────────────────────────────────────────
+import Base       from '../layouts/Base.astro';
+import CTAButton  from '../components/CTAButton.astro';
+import CasoCard   from '../components/CasoCard.astro';
+import DemoShell  from '../components/DemoShell.astro';
+
+// ─── Datos — Casos de uso (S1.5) ─────────────────────────────────────────────
+// Fuente: Especificación Funcional v1.1 — tabla de casos de uso
+const casos = [
+  {
+    area:        'Operaciones',
+    problema:    'Clasificar y procesar documentos sin digitación manual',
+    descripcion: 'Recibimos documentos en PDF y email. Alguien los revisa y los ingresa al sistema a mano.',
+    href:        '/casos-de-uso/procesamiento-documental',
+  },
+  {
+    area:        'Soporte',
+    problema:    'Atender y resolver consultas sin saturar al equipo',
+    descripcion: 'Respondemos las mismas preguntas todos los días. El equipo pierde horas en consultas que podrían resolverse solas.',
+    href:        '/casos-de-uso/atencion-soporte',
+  },
+  {
+    area:        'Ventas',
+    problema:    'Calificar y dar seguimiento a leads las 24 horas',
+    descripcion: 'Recibimos consultas fuera de horario y no hay quien responda. Los leads se enfrían antes de que alguien los atienda.',
+    href:        '/casos-de-uso/calificacion-leads',
+  },
+  {
+    area:        'Operaciones',
+    problema:    'Generar reportes ejecutivos sin trabajo manual',
+    descripcion: 'Nuestros reportes semanales los construye alguien manualmente durante horas. Los datos ya están en el sistema.',
+    href:        '/casos-de-uso/reportes-automaticos',
+  },
+  {
+    area:        'Operaciones',
+    problema:    'Automatizar flujos de aprobación y seguimiento',
+    descripcion: 'Tenemos procesos con varios pasos y varias personas. Cada paso requiere intervención humana aunque la decisión sea siempre la misma.',
+    href:        '/casos-de-uso/automatizacion-workflows',
+  },
+];
+
+// ─── Datos — Pasos de trabajo (S1.4) ─────────────────────────────────────────
+const pasos = [
+  {
+    numero:      '①',
+    titulo:      'Diagnóstico',
+    descripcion: 'Identificamos el proceso que más tiempo y dinero le cuesta hoy.',
+  },
+  {
+    numero:      '②',
+    titulo:      'Caso de uso',
+    descripcion: 'Definimos qué automatizar primero y cómo mediremos el resultado.',
+  },
+  {
+    numero:      '③',
+    titulo:      'Demo',
+    descripcion: 'Le mostramos cómo funciona antes de comprometerse con una implementación.',
+  },
+  {
+    numero:      '④',
+    titulo:      'Piloto',
+    descripcion: 'Implementamos en producción y medimos el impacto desde el primer día.',
+  },
+];
+
+// ─── Datos — Servicios (S1.7) ────────────────────────────────────────────────
+const servicios = [
+  {
+    titulo:       'Agentes de IA a medida',
+    cuando:       'Cuando el proceso tiene múltiples pasos, requiere decisiones y maneja herramientas conectadas.',
+    href:         '/servicios#agentes',
+  },
+  {
+    titulo:       'Automatización de procesos',
+    cuando:       'Cuando el proceso es repetitivo, tiene reglas claras y alto volumen.',
+    href:         '/servicios#automatizacion',
+  },
+  {
+    titulo:       'Consultoría estratégica',
+    cuando:       'Cuando no es claro qué automatizar primero o cómo integrar IA en la operación.',
+    href:         '/servicios#consultoria',
+  },
+  {
+    titulo:       'Formación de equipos',
+    cuando:       'Cuando el equipo necesita capacidad interna para trabajar con herramientas de IA.',
+    href:         '/servicios#formacion',
+  },
+];
+---
+
+<Base
+  title="PidiendoIA"
+  description="Ayudamos a empresas a implementar IA en procesos reales — y diseñamos cada piloto para medir su impacto desde el inicio."
+  canonical="https://pidiendoia.com/"
+>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- S1.2 — HERO                                                         -->
+    <!-- Objetivo: responder en <7 s: ¿Es para mí? ¿Qué hacen? ¿Qué hago? -->
+    <!-- RC-01: H1 parte del problema, no menciona "IA".                    -->
+    <!-- DS-02: dos CTAs — primary (diagnóstico) + secondary (demos).       -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <section
+      class="bg-neutral-950 px-4 py-20 sm:px-6 lg:px-8"
+      aria-labelledby="hero-heading"
+    >
+      <div class="mx-auto max-w-3xl text-center">
+
+        <!-- H1 — pendiente de validación A/B antes de congelar -->
+        <h1
+          id="hero-heading"
+          class="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl"
+        >
+          ¿Cuánto tiempo pierde su equipo en procesos que podrían automatizarse?
+        </h1>
+
+        <!-- Subheadline — propuesta de valor + promesa de medición honesta -->
+        <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-neutral-400">
+          Ayudamos a empresas a implementar IA en procesos reales —
+          y diseñamos cada piloto para medir su impacto desde el inicio.
+        </p>
+
+        <!-- CTAs — primary + secondary (DS-02) -->
+        <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <CTAButton href="/contacto?origen=hero" variant="primary">
+            Agendar diagnóstico
+          </CTAButton>
+          <CTAButton href="/demos" variant="secondary">
+            Ver cómo funciona
+          </CTAButton>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- S1.3 — PROBLEMA (3 tarjetas)                                        -->
+    <!-- Objetivo: el visitante reconoce su problema antes de ver solución. -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <section
+      class="bg-white px-4 py-16 sm:px-6 lg:px-8"
+      aria-labelledby="problema-heading"
+    >
+      <div class="mx-auto max-w-5xl">
+
+        <h2
+          id="problema-heading"
+          class="text-center text-2xl font-bold text-neutral-950"
+        >
+          Procesos que consumen tiempo de su equipo todos los días
+        </h2>
+
+        <!-- 3 tarjetas de problema -->
+        <div class="mt-10 grid gap-6 sm:grid-cols-3">
+
+          <!-- Problema 1 — Procesamiento documental -->
+          <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-5">
+            <p class="text-sm leading-relaxed text-neutral-700">
+              "Recibimos documentos en PDF y email. Alguien los revisa y los ingresa al sistema a mano."
+            </p>
+            <a
+              href="/casos-de-uso/procesamiento-documental"
+              class="mt-4 inline-block text-sm font-medium text-brand-700 hover:text-brand-900 transition-colors"
+            >
+              Automatización documental →
+            </a>
+          </div>
+
+          <!-- Problema 2 — Soporte -->
+          <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-5">
+            <p class="text-sm leading-relaxed text-neutral-700">
+              "Respondemos las mismas preguntas todos los días. El equipo pierde horas en consultas que podrían resolverse solas."
+            </p>
+            <a
+              href="/casos-de-uso/atencion-soporte"
+              class="mt-4 inline-block text-sm font-medium text-brand-700 hover:text-brand-900 transition-colors"
+            >
+              Soporte automatizado →
+            </a>
+          </div>
+
+          <!-- Problema 3 — Reportes -->
+          <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-5">
+            <p class="text-sm leading-relaxed text-neutral-700">
+              "Nuestros reportes semanales los construye alguien manualmente durante horas. Los datos ya están en el sistema."
+            </p>
+            <a
+              href="/casos-de-uso/reportes-automaticos"
+              class="mt-4 inline-block text-sm font-medium text-brand-700 hover:text-brand-900 transition-colors"
+            >
+              Reportes automáticos →
+            </a>
+          </div>
+
+        </div>
+
+        <!-- Frase de cierre de sección -->
+        <p class="mt-10 text-center text-sm italic text-neutral-500">
+          Si alguno de estos procesos le resulta familiar, podemos mostrarle cómo se ve automatizado — antes de hablar de implementación.
+        </p>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- S1.4 — CÓMO TRABAJAMOS (4 pasos)                                    -->
+    <!-- Objetivo: operacionalizar el diferenciador "problema primero".     -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <section
+      class="bg-neutral-50 px-4 py-16 sm:px-6 lg:px-8"
+      aria-labelledby="proceso-heading"
+    >
+      <div class="mx-auto max-w-5xl">
+
+        <h2
+          id="proceso-heading"
+          class="text-center text-2xl font-bold text-neutral-950"
+        >
+          Cómo trabajamos
+        </h2>
+
+        <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {pasos.map((paso) => (
+            <div class="flex flex-col gap-2">
+
+              <!-- Número de paso -->
+              <span class="text-2xl font-bold text-brand-700">
+                {paso.numero}
+              </span>
+
+              <!-- Título -->
+              <h3 class="text-sm font-semibold text-neutral-950">
+                {paso.titulo}
+              </h3>
+
+              <!-- Descripción -->
+              <p class="text-sm leading-relaxed text-neutral-700">
+                {paso.descripcion}
+              </p>
+
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- S1.5 — CASOS DE USO (5 tarjetas enlazadas)                         -->
+    <!-- Objetivo: dar ruta directa al caso de interés sin leer toda la Home-->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <section
+      class="bg-white px-4 py-16 sm:px-6 lg:px-8"
+      aria-labelledby="casos-heading"
+    >
+      <div class="mx-auto max-w-5xl">
+
+        <h2
+          id="casos-heading"
+          class="text-center text-2xl font-bold text-neutral-950"
+        >
+          ¿Qué proceso quiere automatizar?
+        </h2>
+
+        <!-- Grid de 5 tarjetas de caso — componente CasoCard -->
+        <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {casos.map((caso) => (
+            <CasoCard
+              area={caso.area}
+              problema={caso.problema}
+              descripcion={caso.descripcion}
+              href={caso.href}
+            />
+          ))}
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- S1.6 — DEMO EMBEBIDA                                                -->
+    <!-- Objetivo: demostrar capacidad sin backend ni LLM real.             -->
+    <!-- RT-03: 100% client-side, datos predefinidos, sin fetch de red.     -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <section
+      class="bg-neutral-50 px-4 py-16 sm:px-6 lg:px-8"
+      aria-labelledby="demo-heading"
+    >
+      <div class="mx-auto max-w-5xl">
+
+        <h2
+          id="demo-heading"
+          class="text-center text-2xl font-bold text-neutral-950"
+        >
+          Así funciona antes de que lo implementemos en su empresa
+        </h2>
+
+        <p class="mt-3 text-center text-sm text-neutral-500">
+          Seleccione un documento de ejemplo y observe cómo se extraen los datos automáticamente.
+        </p>
+
+        <!-- Shell de demo con contenido client-side embebido -->
+        <div class="mt-10">
+          <DemoShell
+            titulo="Procesamiento documental"
+            descripcion="Selecciona un tipo de documento y observa cómo el sistema extrae los datos campo por campo."
+            ctaHref="/contacto?origen=demos&proceso=d1"
+          >
+
+            <!--
+              Contenido interactivo — 100% client-side.
+              Datos predefinidos: no hay fetch, no hay API, no hay LLM real.
+              El mismo resultado siempre para el mismo input (RT-03).
+            -->
+            <div id="demo-documental" class="space-y-4">
+
+              <!-- Selector de tipo de documento -->
+              <div class="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  data-doc="factura"
+                  class="demo-btn rounded border border-brand-700 bg-brand-700 px-3 py-1.5 text-xs font-medium text-white transition-colors"
+                >
+                  Factura
+                </button>
+                <button
+                  type="button"
+                  data-doc="contrato"
+                  class="demo-btn rounded border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:border-brand-700 hover:text-brand-700"
+                >
+                  Contrato
+                </button>
+                <button
+                  type="button"
+                  data-doc="formulario"
+                  class="demo-btn rounded border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:border-brand-700 hover:text-brand-700"
+                >
+                  Formulario
+                </button>
+              </div>
+
+              <!-- Área de resultado -->
+              <div
+                id="demo-output"
+                class="rounded-lg border border-neutral-200 bg-white p-4 min-h-[140px]"
+                aria-live="polite"
+                aria-label="Resultado de extracción"
+              >
+                <!-- Estado inicial -->
+                <p class="text-sm text-neutral-500">
+                  Seleccione un tipo de documento para ver la extracción de datos.
+                </p>
+              </div>
+
+            </div>
+
+          </DemoShell>
+        </div>
+
+        <!-- Enlace a todas las demos -->
+        <div class="mt-8 text-center">
+          <a
+            href="/demos"
+            class="text-sm font-medium text-brand-700 hover:text-brand-900 transition-colors"
+          >
+            Ver todas las demos →
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- S1.7 — SERVICIOS (4 bloques)                                        -->
+    <!-- Objetivo: responder "¿Cómo trabajo con ustedes exactamente?"       -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <section
+      class="bg-white px-4 py-16 sm:px-6 lg:px-8"
+      aria-labelledby="servicios-heading"
+    >
+      <div class="mx-auto max-w-5xl">
+
+        <h2
+          id="servicios-heading"
+          class="text-center text-2xl font-bold text-neutral-950"
+        >
+          Cuatro formas de trabajar juntos
+        </h2>
+
+        <div class="mt-10 grid gap-6 sm:grid-cols-2">
+          {servicios.map((servicio) => (
+            <a
+              href={servicio.href}
+              class="group rounded-lg border border-neutral-200 bg-neutral-50 p-5 transition-shadow hover:shadow-md"
+            >
+              <h3 class="text-sm font-semibold text-neutral-950 group-hover:text-brand-700 transition-colors">
+                {servicio.titulo}
+              </h3>
+              <p class="mt-2 text-sm leading-relaxed text-neutral-700">
+                {servicio.cuando}
+              </p>
+            </a>
+          ))}
+        </div>
+
+        <!-- CTA secundario de sección -->
+        <p class="mt-10 text-center text-sm text-neutral-500">
+          ¿No sabe cuál servicio necesita?{' '}
+          <a
+            href="/contacto?origen=servicios-no-se"
+            class="font-medium text-brand-700 hover:text-brand-900 transition-colors"
+          >
+            Empiece por el diagnóstico.
+          </a>
+        </p>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- S1.8 — NOSOTROS (compacto)                                          -->
+    <!-- Objetivo: credibilidad sin ser el centro de la página.             -->
+    <!-- Máximo 3 párrafos. Sin lista de valores ni logos de tecnologías.   -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <section
+      class="bg-neutral-50 px-4 py-16 sm:px-6 lg:px-8"
+      aria-labelledby="nosotros-heading"
+    >
+      <div class="mx-auto max-w-2xl">
+
+        <h2
+          id="nosotros-heading"
+          class="text-2xl font-bold text-neutral-950"
+        >
+          IA SIN FRONTERAS
+        </h2>
+
+        <!-- Párrafo 1: quiénes somos -->
+        <p class="mt-4 text-sm leading-relaxed text-neutral-700">
+          Somos un equipo especializado en implementar inteligencia artificial en procesos empresariales reales, con base en Colombia y alcance en toda América Latina.
+        </p>
+
+        <!-- Párrafo 2: cómo entendemos la IA -->
+        <p class="mt-3 text-sm leading-relaxed text-neutral-700">
+          Creemos que la IA es un medio, no el mensaje. Por eso empezamos siempre por el problema operativo concreto — no por la tecnología — y diseñamos cada piloto para que su impacto sea medible desde el primer día.
+        </p>
+
+        <!-- Párrafo 3: alcance -->
+        <p class="mt-3 text-sm leading-relaxed text-neutral-700">
+          Trabajamos con empresas medianas y grandes que quieren convertir procesos manuales y repetitivos en sistemas inteligentes, sin perder el control de sus operaciones.
+        </p>
+
+        <a
+          href="/nosotros"
+          class="mt-5 inline-block text-sm font-medium text-brand-700 hover:text-brand-900 transition-colors"
+        >
+          Conocer más →
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- S1.9 — CTA FINAL                                                    -->
+    <!-- Objetivo: capturar al visitante que llegó al final sin haber       -->
+    <!-- actuado. Último punto de conversión antes de salir.                -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <section
+      class="bg-neutral-950 px-4 py-20 sm:px-6 lg:px-8"
+      aria-labelledby="cta-final-heading"
+    >
+      <div class="mx-auto max-w-2xl text-center">
+
+        <h2
+          id="cta-final-heading"
+          class="text-2xl font-bold text-white sm:text-3xl"
+        >
+          ¿Hay un proceso en su empresa que consume más tiempo del que debería?
+        </h2>
+
+        <p class="mt-4 text-sm leading-relaxed text-neutral-400">
+          Cuéntenos cuál es. Le mostramos si tiene sentido automatizarlo y cómo.
+        </p>
+
+        <div class="mt-8">
+          <CTAButton href="/contacto?origen=cta-final" variant="primary">
+            Agendar diagnóstico
+          </CTAButton>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+</Base>
+
+<!-- ─── Demo interactiva — JavaScript client-side ────────────────────────── -->
+<!--
+  Lógica de la demo de procesamiento documental.
+  100% vanilla JS — sin dependencias externas (RT-03, RT-07).
+  Datos predefinidos: no hay fetch, no hay LLM real, no hay API.
+  El mismo resultado siempre para el mismo tipo de documento.
+-->
+<script>
+  // ─── Datos predefinidos por tipo de documento ───────────────────────────
+  // Cada entrada representa la "extracción" simulada para ese tipo.
+  const demoData: Record<string, { campos: { label: string; valor: string }[] }> = {
+    factura: {
+      campos: [
+        { label: 'Proveedor',        valor: 'Distribuidora Andina S.A.S.' },
+        { label: 'NIT',              valor: '900.123.456-7'               },
+        { label: 'Número de factura',valor: 'FE-2026-08142'               },
+        { label: 'Fecha de emisión', valor: '14 de agosto de 2026'        },
+        { label: 'Subtotal',         valor: '$ 4.250.000'                 },
+        { label: 'IVA (19%)',        valor: '$ 807.500'                   },
+        { label: 'Total',            valor: '$ 5.057.500'                 },
+        { label: 'Vencimiento',      valor: '28 de agosto de 2026'        },
+      ],
+    },
+    contrato: {
+      campos: [
+        { label: 'Tipo de contrato', valor: 'Prestación de servicios'    },
+        { label: 'Contratante',      valor: 'Inversiones del Norte Ltda.' },
+        { label: 'Contratista',      valor: 'TechSoluciones S.A.S.'       },
+        { label: 'Objeto',           valor: 'Desarrollo de software a medida' },
+        { label: 'Valor',            valor: '$ 48.000.000'                },
+        { label: 'Duración',         valor: '6 meses'                     },
+        { label: 'Fecha de inicio',  valor: '1 de septiembre de 2026'     },
+        { label: 'Firma requerida',  valor: 'Ambas partes + revisor fiscal'},
+      ],
+    },
+    formulario: {
+      campos: [
+        { label: 'Nombre completo',  valor: 'Carlos Andrés Morales'       },
+        { label: 'Documento',        valor: 'CC 1.098.765.432'            },
+        { label: 'Cargo solicitado', valor: 'Analista de Operaciones'     },
+        { label: 'Área',             valor: 'Operaciones'                 },
+        { label: 'Fecha solicitud',  valor: '14 de agosto de 2026'        },
+        { label: 'Aprobador',        valor: 'Pendiente de asignación'     },
+      ],
+    },
+  };
+
+  // ─── Referencias al DOM ──────────────────────────────────────────────────
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.demo-btn');
+  const output  = document.getElementById('demo-output') as HTMLDivElement;
+
+  // ─── Renderizar resultado ────────────────────────────────────────────────
+  // Genera el HTML de la tabla de campos extraídos.
+  function renderResult(tipo: string): void {
+    const data = demoData[tipo];
+    if (!data) return;
+
+    // Animación de "procesando" antes de mostrar el resultado
+    output.innerHTML = `
+      <p class="text-sm text-neutral-500 animate-pulse">
+        Extrayendo datos del documento…
+      </p>
+    `;
+
+    // Simular latencia de procesamiento (500 ms) sin fetch real
+    setTimeout(() => {
+      const filas = data.campos
+        .map(
+          (campo) => `
+          <tr class="border-t border-neutral-100">
+            <td class="py-1.5 pr-4 text-xs font-medium text-neutral-500 whitespace-nowrap">
+              ${campo.label}
+            </td>
+            <td class="py-1.5 text-xs text-neutral-900">
+              ${campo.valor}
+            </td>
+          </tr>
+        `
+        )
+        .join('');
+
+      output.innerHTML = `
+        <div class="flex items-center gap-2 mb-3">
+          <span class="inline-block h-2 w-2 rounded-full bg-accent-500"></span>
+          <span class="text-xs font-medium text-accent-700">
+            Datos extraídos correctamente
+          </span>
+        </div>
+        <table class="w-full">
+          <tbody>${filas}</tbody>
+        </table>
+      `;
+    }, 500);
+  }
+
+  // ─── Manejo de clicks en los botones de selección ───────────────────────
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tipo = btn.dataset.doc ?? '';
+
+      // Actualizar estilos del botón activo
+      buttons.forEach((b) => {
+        b.classList.remove('bg-brand-700', 'text-white', 'border-brand-700');
+        b.classList.add('border-neutral-300', 'text-neutral-700');
+      });
+      btn.classList.add('bg-brand-700', 'text-white', 'border-brand-700');
+      btn.classList.remove('border-neutral-300', 'text-neutral-700');
+
+      // Renderizar el resultado para el tipo seleccionado
+      renderResult(tipo);
+    });
+  });
+</script>

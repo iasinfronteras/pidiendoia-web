@@ -1,0 +1,97 @@
+---
+/**
+ * Footer.astro
+ * Pie de página global de pidiendoia.com.
+ *
+ * Responsabilidades:
+ * - Mostrar logo, navegación secundaria, legal y copyright.
+ * - Ser el único footer del sitio — reutilizado en todas las páginas vía Base.astro.
+ *
+ * Restricciones (Especificación Funcional v1.1 — Sección F):
+ * - Sin newsletter, redes sociales, chat flotante ni widgets de terceros en Etapa 1.
+ * - Copyright dinámico usando el año actual.
+ */
+
+// ─── Navegación secundaria ───────────────────────────────────────────────────
+const footerLinks = [
+  { label: 'Inicio',        href: '/'              },
+  { label: 'Casos de uso',  href: '/casos-de-uso'  },
+  { label: 'Demos',         href: '/demos'          },
+  { label: 'Servicios',     href: '/servicios'      },
+  { label: 'Nosotros',      href: '/nosotros'       },
+  { label: 'Contacto',      href: '/contacto'       },
+];
+
+// ─── Legal ───────────────────────────────────────────────────────────────────
+const legalLinks = [
+  { label: 'Política de privacidad', href: '/privacidad' },
+  { label: 'Términos y condiciones', href: '/terminos'   },
+];
+
+// ─── Copyright dinámico ──────────────────────────────────────────────────────
+// Se evalúa en build time — correcto para un sitio estático.
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="border-t border-neutral-200 bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+
+    <!-- Fila superior: logo + navegación secundaria ─────────────────────── -->
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+
+      <!-- Logo -->
+      <a
+        href="/"
+        class="text-lg font-bold text-brand-700 hover:text-brand-900 transition-colors"
+        aria-label="PidiendoIA — ir al inicio"
+      >
+        PidiendoIA
+      </a>
+
+      <!-- Navegación secundaria -->
+      <nav aria-label="Navegación secundaria del footer">
+        <ul class="flex flex-wrap gap-x-6 gap-y-2" role="list">
+          {footerLinks.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="text-sm text-neutral-700 hover:text-brand-700 transition-colors"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+
+    <!-- Divisor -->
+    <hr class="my-8 border-neutral-200" />
+
+    <!-- Fila inferior: copyright + legal ───────────────────────────────── -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+      <!-- Copyright -->
+      <p class="text-xs text-neutral-500">
+        &copy; {currentYear} IA SIN FRONTERAS. Todos los derechos reservados.
+      </p>
+
+      <!-- Links legales -->
+      <nav aria-label="Navegación legal">
+        <ul class="flex gap-4" role="list">
+          {legalLinks.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="text-xs text-neutral-500 hover:text-brand-700 transition-colors"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+
+  </div>
+</footer>

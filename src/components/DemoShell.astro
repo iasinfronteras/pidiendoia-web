@@ -1,0 +1,118 @@
+---
+/**
+ * DemoShell.astro
+ * Contenedor visual para demos interactivas client-side de pidiendoia.com.
+ *
+ * Responsabilidades:
+ * - Proveer el marco visual consistente que envuelve cada demo.
+ * - Mostrar el título y la descripción del proceso demostrado.
+ * - Exponer un slot para el contenido interactivo específico de cada demo.
+ * - Mostrar opcionalmente un CTA contextual post-demo.
+ *
+ * Restricciones (RT-03, Especificación Funcional v1.1 — S2.3):
+ * - Este componente NO contiene lógica de negocio ni llamadas a API.
+ * - Todo resultado visible es definido por la demo concreta que usa el slot.
+ * - El CTA post-demo conserva el contexto del proceso visualizado.
+ * - Sin librerías de animación externas — solo Tailwind y CSS nativo.
+ *
+ * Uso:
+ *   <DemoShell
+ *     titulo="Procesamiento documental"
+ *     descripcion="Selecciona un documento y observa cómo se extraen los datos automáticamente."
+ *     ctaLabel="Agendar diagnóstico de este proceso"
+ *     ctaHref="/contacto?origen=demos&proceso=d1"
+ *   >
+ *     <!-- Contenido interactivo client-side aquí -->
+ *   </DemoShell>
+ */
+
+// ─── Importaciones ───────────────────────────────────────────────────────────
+import CTAButton from './CTAButton.astro';
+
+// ─── Props ───────────────────────────────────────────────────────────────────
+interface Props {
+  /** Nombre del proceso demostrado. Aparece como encabezado del shell. */
+  titulo: string;
+
+  /**
+   * Instrucción breve para el usuario.
+   * Describe qué hacer dentro de la demo. Máximo 2 oraciones.
+   */
+  descripcion: string;
+
+  /** Texto del CTA contextual post-demo. */
+  ctaLabel?: string;
+
+  /**
+   * URL del CTA post-demo.
+   * Debe incluir ?origen=demos&proceso=[id] para tracking de fuente.
+   */
+  ctaHref?: string;
+
+  /**
+   * Nota de contexto visible para el visitante.
+   * Recuerda que la demo es una simulación, no un sistema real en producción.
+   * Alineado con RC-02 y RC-03: no afirmar resultados propios.
+   */
+  nota?: string;
+}
+
+const {
+  titulo,
+  descripcion,
+  ctaLabel = 'Agendar diagnóstico de este proceso',
+  ctaHref,
+  nota = 'Esta demo simula un flujo real con datos de ejemplo. El resultado de tu proceso específico se define en el diagnóstico.',
+} = Astro.props;
+---
+
+<!--
+  Shell de demo.
+  - Superficie neutral-50 con borde sutil: diferencia la demo del contenido editorial.
+  - max-w-2xl: ancho controlado para legibilidad en desktop y mobile.
+-->
+<section
+  class="mx-auto w-full max-w-2xl rounded-xl border border-neutral-200 bg-neutral-50 p-6"
+  aria-label={`Demo interactiva: ${titulo}`}
+>
+
+  <!-- Encabezado de la demo ─────────────────────────────────────────────── -->
+  <div class="mb-4">
+    <h2 class="text-base font-semibold text-neutral-950">
+      {titulo}
+    </h2>
+    <p class="mt-1 text-sm text-neutral-700">
+      {descripcion}
+    </p>
+  </div>
+
+  <!-- Divisor -->
+  <hr class="mb-5 border-neutral-200" />
+
+  <!--
+    Slot del contenido interactivo.
+    Cada demo concreta inyecta aquí su HTML + JS client-side.
+    Este shell no asume nada sobre el contenido interno.
+  -->
+  <div class="demo-content">
+    <slot />
+  </div>
+
+  <!-- Nota de contexto (RC-02 / RC-03) ─────────────────────────────────── -->
+  <p class="mt-5 text-xs leading-relaxed text-neutral-500">
+    {nota}
+  </p>
+
+  <!-- CTA post-demo (opcional) ─────────────────────────────────────────── -->
+  {ctaHref && (
+    <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <CTAButton href={ctaHref} variant="primary">
+        {ctaLabel}
+      </CTAButton>
+      <CTAButton href="/demos" variant="ghost">
+        Ver todas las demos →
+      </CTAButton>
+    </div>
+  )}
+
+</section>

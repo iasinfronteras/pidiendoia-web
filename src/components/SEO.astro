@@ -1,0 +1,87 @@
+---
+/**
+ * SEO.astro
+ * Componente de metadatos SEO global para stack-web.
+ *
+ * Responsabilidades:
+ * - Generar <title> con formato consistente.
+ * - Emitir meta description, canonical URL y Open Graph mínimo.
+ * - Ser el único lugar donde se definen estos metadatos en el proyecto.
+ *
+ * Uso:
+ *   <SEO
+ *     title="Casos de uso de IA para empresas"
+ *     description="Automatización documental, soporte, leads y reportes."
+ *     canonical="https://pidiendoia.com/casos-de-uso"
+ *   />
+ *
+ * Restricciones (RC-06 / RT-06):
+ * - Debe incluirse en Base.astro dentro de <head>.
+ * - El sufijo " | pidiendoia.com" se añade automáticamente al título.
+ * - canonical es obligatorio para evitar contenido duplicado.
+ */
+
+// ─── Props ───────────────────────────────────────────────────────────────────
+interface Props {
+  /** Título de la página. Se le añade " | pidiendoia.com" automáticamente. */
+  title: string;
+
+  /** Descripción SEO. Ideal entre 120 y 160 caracteres. */
+  description: string;
+
+  /** URL canónica absoluta de la página. */
+  canonical: string;
+
+  /**
+   * URL de imagen para Open Graph.
+   * Formato recomendado: 1200×630 px.
+   * Por defecto apunta a la og-image global del sitio.
+   */
+  ogImage?: string;
+
+  /**
+   * Tipo de contenido Open Graph.
+   * 'website' para páginas generales, 'article' para entradas de blog.
+   */
+  ogType?: 'website' | 'article';
+}
+
+// ─── Valores por defecto ─────────────────────────────────────────────────────
+const {
+  title,
+  description,
+  canonical,
+  ogImage  = '/images/og-default.png',
+  ogType   = 'website',
+} = Astro.props;
+
+// Formato de título: "Título de la página | pidiendoia.com"
+const formattedTitle = `${title} | pidiendoia.com`;
+---
+
+<!--
+  Metadatos esenciales
+  Estos tags se inyectan dentro del <head> de Base.astro vía <slot name="head">.
+-->
+
+<!-- Título del documento -->
+<title>{formattedTitle}</title>
+
+<!-- SEO básico -->
+<meta name="description"  content={description} />
+<link rel="canonical"     href={canonical} />
+
+<!-- Open Graph (mínimo viable para compartir en redes y mensajería) -->
+<meta property="og:type"        content={ogType} />
+<meta property="og:title"       content={formattedTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url"         content={canonical} />
+<meta property="og:image"       content={ogImage} />
+<meta property="og:locale"      content="es_CO" />
+<meta property="og:site_name"   content="pidiendoia.com" />
+
+<!-- Twitter / X Card -->
+<meta name="twitter:card"        content="summary_large_image" />
+<meta name="twitter:title"       content={formattedTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image"       content={ogImage} />

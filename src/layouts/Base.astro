@@ -1,0 +1,74 @@
+---
+/**
+ * Base.astro
+ * Layout raíz compartido por las páginas de stack-web.
+ *
+ * Responsabilidades:
+ * - Definir la estructura HTML global.
+ * - Cargar el Design System mediante global.css.
+ * - Delegar los metadatos SEO a SEO.astro.
+ * - Incorporar la navegación global mediante Nav.astro.
+ * - Proporcionar el título, descripción y canonical de cada página.
+ */
+
+// ─── Importaciones ───────────────────────────────────────────────────────────
+
+import '../styles/global.css';
+import SEO from '../components/SEO.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+// ─── Props ───────────────────────────────────────────────────────────────────
+
+interface Props {
+  /** Título de la página. */
+  title: string;
+
+  /** Descripción SEO específica de la página. */
+  description?: string;
+
+  /** URL canónica absoluta de la página. */
+  canonical: string;
+}
+
+const {
+  title,
+  description = 'Ayudamos a empresas a implementar IA en procesos reales.',
+  canonical,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Metadatos básicos y configuración responsive -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO centralizado -->
+    <SEO
+      title={title}
+      description={description}
+      canonical={canonical}
+    />
+
+    <!-- Información técnica: framework utilizado -->
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+
+  <body class="bg-neutral-50 font-sans text-neutral-700">
+    <!-- Navegación global -->
+    <Nav />
+
+    <!--
+      Slot principal.
+      Cada página inyecta aquí su contenido.
+      Nav y Footer se incorporan globalmente desde Base.astro.
+    -->
+    <slot />
+    <Footer />
+  </body>
+</html>

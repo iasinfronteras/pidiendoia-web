@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  /* Marca — azul institucional */
+  --color-brand-50:  #EAF0FA;
+  --color-brand-200: #C0D4F2;
+  --color-brand-500: #4A7EC7;
+  --color-brand-700: #1E4D8C;
+  --color-brand-900: #0F2D52;
+
+  /* Acento — verde tecnológico */
+  /* accent-500: solo iconos/badges/estados — NO texto con fondo blanco */
+  /* accent-700: texto verde y CTA verde (contraste ~6.5:1 con blanco) */
+  --color-accent-50:  #EBF7F2;
+  --color-accent-500: #1FA874;
+  --color-accent-700: #0D6B4A;
+
+  /* Neutros */
+  --color-neutral-50:  #F7F8FA;
+  --color-neutral-200: #E8EBF0;
+  --color-neutral-500: #9AA3B0;
+  --color-neutral-700: #3D4554;
+  --color-neutral-950: #1A1F2E;
+
+  /* Tipografía — Inter, una sola familia */
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Escala tipográfica */
+  --font-size-display: 3rem;
+  --font-size-h1:      2.25rem;
+  --font-size-h2:      1.5rem;
+  --font-size-h3:      1.125rem;
+  --font-size-body:    1rem;
+  --font-size-sm:      0.875rem;
+  --font-size-xs:      0.8125rem;
+
+  /* Bordes */
+  --radius-sm: 4px;
+  --radius:    6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+}
