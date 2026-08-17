@@ -160,8 +160,8 @@ const isActive = (href: string): boolean => {
 <script>
   const toggle   = document.getElementById('nav-toggle')   as HTMLButtonElement;
   const menu     = document.getElementById('mobile-menu')  as HTMLDivElement;
-  const iconOpen  = document.getElementById('icon-open')   as SVGElement;
-  const iconClose = document.getElementById('icon-close')  as SVGElement;
+  const iconOpen  = document.querySelector<SVGElement>('#icon-open');
+  const iconClose = document.querySelector<SVGElement>('#icon-close');
 
   toggle?.addEventListener('click', () => {
     const isOpen = menu.classList.toggle('hidden') === false;
@@ -174,7 +174,7 @@ const isActive = (href: string): boolean => {
     );
 
     // Intercambiar íconos
-    iconOpen.classList.toggle('hidden', isOpen);
-    iconClose.classList.toggle('hidden', !isOpen);
+    iconOpen?.classList.toggle('hidden', isOpen);
+    iconClose?.classList.toggle('hidden', !isOpen);
   });
 </script>
