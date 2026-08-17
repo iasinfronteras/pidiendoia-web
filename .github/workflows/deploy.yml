@@ -194,9 +194,11 @@ jobs:
           sleep 3
 
           for attempt in 1 2 3 4 5; do
-            if curl --fail --silent --show-error --location \
+            curl --fail --silent --show-error --location \
                 --max-time 15 \
-                https://pidiendoia.com/ | grep -Fq 'PidiendoIA'; then
+                https://pidiendoia.com/ \
+                -o /tmp/healthcheck.html
+            if grep -Fq 'PidiendoIA' /tmp/healthcheck.html; then
               echo "Health check passed on attempt $attempt."
               exit 0
             fi
