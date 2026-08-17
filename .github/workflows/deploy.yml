@@ -80,6 +80,12 @@ jobs:
       group: production-deploy
       cancel-in-progress: false
 
+     # Permisos mínimos para el job CD.
+     # id-token: write permite autenticación OIDC con Tailscale.
+    permissions:
+      contents: read
+      id-token: write
+
     environment:
       name: production
       url: https://pidiendoia.com
@@ -90,6 +96,18 @@ jobs:
         with:
           name: dist-${{ github.sha }}
           path: dist/
+
+      # Conecta el runner efímero al tailnet mediante GitHub OIDC.
+      # El nodo creado recibe únicamente tag:ci.
+      # VPS_TS_IP se usa para verificar conectividad antes del SSH.
+      - name: Conectar a Tailscale
+        uses: tailscale/github-action@780049a30b6ff5c378a9e7b389d15ece7a204888 # v4.1.3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:ci
+          ping: ${{ vars.VPS_TS_IP }}
+
 
       - name: Setup SSH agent
         uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
@@ -111,7 +129,7 @@ jobs:
         id: prev
         shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ vars.VPS_TS_IP }}
           VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
         run: |
           set -euo pipefail
@@ -131,7 +149,7 @@ jobs:
       - name: Create new release directory
         shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ vars.VPS_TS_IP }}
           VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
           RELEASE_SHA: ${{ github.sha }}
         run: |
@@ -142,7 +160,7 @@ jobs:
       - name: Transfer verified artifact
         shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ vars.VPS_TS_IP }}
           VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
           RELEASE_SHA: ${{ github.sha }}
         run: |
@@ -154,7 +172,7 @@ jobs:
       - name: Activate release atomically
         shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ vars.VPS_TS_IP }}
           VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
           RELEASE_SHA: ${{ github.sha }}
         run: |
@@ -193,7 +211,7 @@ jobs:
         if: success()
         shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ vars.VPS_TS_IP }}
           VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
           RELEASE_SHA: ${{ github.sha }}
         run: |
@@ -205,7 +223,7 @@ jobs:
         if: failure() && steps.healthcheck.outcome == 'failure'
         shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ vars.VPS_TS_IP }}
           VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
           PREV_SHA: ${{ steps.prev.outputs.sha }}
         run: |
@@ -225,7 +243,7 @@ jobs:
         if: success()
         shell: bash
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_HOST: ${{ vars.VPS_TS_IP }}
           VPS_DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
         run: |
           set -euo pipefail
